@@ -12,6 +12,7 @@ __all__ = [
     "Assign", "IfThen", "LogicalIf", "DoLoop",
     "Goto", "Continue", "PrintStmt", "ReadStmt",
     "CallStmt", "ReturnStmt", "StopStmt",
-    "BinOp", "UnaryOp", "FuncCall",
+    "ArithmeticBinOp", "LogicalBinOp", "RelationalBinOp", 
+    "ArithmeticUnaryOp", "LogicalUnaryOp", "FuncCall",
     "Var", "VarOrFuncCall", "IntLit", "RealLit", "StringLit", "BoolLit",
 ]

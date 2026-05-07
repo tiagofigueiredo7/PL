@@ -20,11 +20,6 @@ class SemanticError(Exception):
 # Tipos que podem ser operandos de operações aritméticas
 _NUMERIC_TYPES  = {'INTEGER', 'REAL'}
 
-# Conjuntos de operadores por categoria
-_ARITHMETIC_OPS = {'+', '-', '*', '/', '**'}
-_RELATIONAL_OPS = {'.EQ.', '.NE.', '.LT.', '.LE.', '.GT.', '.GE.'}
-_LOGICAL_OPS    = {'.AND.', '.OR.'}
-
 # Funções intrínsecas
 # (aridade, return_type)
 _INTRINSICS: dict[str, tuple[int | None, str]] = {
@@ -495,11 +490,14 @@ class SemanticAnalyzer(ASTVisitor):
         if isinstance(node, StringLit): return 'CHARACTER'
         if isinstance(node, BoolLit):   return 'LOGICAL'
 
-        if isinstance(node, Var):            return self._type_of_var(node)
-        if isinstance(node, VarOrFuncCall):  return self._type_of_var_or_func(node)
-        if isinstance(node, BinOp):          return self._type_of_binop(node)
-        if isinstance(node, UnaryOp):        return self._type_of_unary(node)
-        if isinstance(node, FuncCall):       return self._type_of_intrinsic(node)
+        if isinstance(node, Var):               return self._type_of_var(node)
+        if isinstance(node, VarOrFuncCall):     return self._type_of_var_or_func(node)
+        if isinstance(node, ArithmeticBinOp):   return self._type_of_ArithmeticBinOp(node)
+        if isinstance(node, LogicalBinOp):      return self._type_of_LogicalBinOp(node)
+        if isinstance(node, RelationalBinOp):   return self._type_of_RelationalBinOp(node)
+        if isinstance(node, ArithmeticUnaryOp): return self._type_of_ArithmeticUnaryOp(node)
+        if isinstance(node, LogicalUnaryOp):    return self._type_of_LogicalUnaryOp(node)
+        if isinstance(node, FuncCall):          return self._type_of_intrinsic(node)
 
         return None
 
@@ -622,78 +620,74 @@ class SemanticAnalyzer(ASTVisitor):
         )
         return None
 
-    def _type_of_binop(self, node: BinOp) -> str | None:
-        """
-        Infere o tipo de uma operação binária e verifica os operandos.
-        """
+    def _type_of_ArithmeticBinOp(self, node: ArithmeticBinOp) -> str | None:
         lt = self._type_of(node.left)
         rt = self._type_of(node.right)
 
-        if node.op in _ARITHMETIC_OPS:
-            for t, side in [(lt, 'esquerdo'), (rt, 'direito')]:
-                if t is not None and t not in _NUMERIC_TYPES:
-                    self._error(
-                        f"Operando {side} de '{node.op}' deve ser numérico, "
-                        f"encontrado {t}.",
-                        node.lineno,
-                    )
-            if lt == 'REAL' or rt == 'REAL':
-                return 'REAL'
-            return 'INTEGER'
-
-        if node.op in _RELATIONAL_OPS:
-            valid = _NUMERIC_TYPES | {'CHARACTER'}
-            for t, side in [(lt, 'esquerdo'), (rt, 'direito')]:
-                if t is not None and t not in valid:
-                    self._error(
-                        f"Operando {side} de '{node.op}' deve ser numérico "
-                        f"ou CHARACTER, encontrado {t}.",
-                        node.lineno,
-                    )
-            if lt in _NUMERIC_TYPES and rt == 'CHARACTER':
+        for t, side in [(lt, 'esquerdo'), (rt, 'direito')]:
+            if t is not None and t not in _NUMERIC_TYPES:
                 self._error(
-                    f"Comparação inválida entre tipo numérico e CHARACTER "
-                    f"com '{node.op}'.",
+                    f"Operando {side} de '{node.op}' deve ser numérico, "
+                    f"encontrado {t}.",
                     node.lineno,
                 )
-            return 'LOGICAL'
+        if lt == 'REAL' or rt == 'REAL':
+            return 'REAL'
+        return 'INTEGER'
 
-        if node.op in _LOGICAL_OPS:
-            for t, side in [(lt, 'esquerdo'), (rt, 'direito')]:
-                if t is not None and t != 'LOGICAL':
-                    self._error(
-                        f"Operando {side} de '{node.op}' deve ser LOGICAL, "
-                        f"encontrado {t}.",
-                        node.lineno,
-                    )
-            return 'LOGICAL'
+    def _type_of_RelationalBinOp(self, node: RelationalBinOp) -> str | None:
+        lt = self._type_of(node.left)
+        rt = self._type_of(node.right)
 
-        return None
+        valid = _NUMERIC_TYPES | {'CHARACTER'}
+        for t, side in [(lt, 'esquerdo'), (rt, 'direito')]:
+            if t is not None and t not in valid:
+                self._error(
+                    f"Operando {side} de '{node.op}' deve ser numérico "
+                    f"ou CHARACTER, encontrado {t}.",
+                    node.lineno,
+                )
+        if (lt in _NUMERIC_TYPES and rt == 'CHARACTER') or (rt in _NUMERIC_TYPES and lt == 'CHARACTER'):
+            self._error(
+                f"Comparação inválida entre tipo numérico e CHARACTER "
+                f"com '{node.op}'.",
+                node.lineno,
+            )
+        return 'LOGICAL'
 
-    def _type_of_unary(self, node: UnaryOp) -> str | None:
-        """
-        Infere o tipo de uma operação unária.
-        """
+    def _type_of_LogicalBinOp(self, node: LogicalBinOp) -> str | None:
+        lt = self._type_of(node.left)
+        rt = self._type_of(node.right)
+
+        for t, side in [(lt, 'esquerdo'), (rt, 'direito')]:
+            if t is not None and t != 'LOGICAL':
+                self._error(
+                    f"Operando {side} de '{node.op}' deve ser LOGICAL, "
+                    f"encontrado {t}.",
+                    node.lineno,
+                )
+        return 'LOGICAL'
+
+    def _type_of_ArithmeticUnaryOp(self, node: ArithmeticUnaryOp) -> str | None:
         ot = self._type_of(node.operand)
 
-        if node.op in ('+', '-'):
-            if ot is not None and ot not in _NUMERIC_TYPES:
-                self._error(
-                    f"Operando de '{node.op}' unário deve ser numérico, "
-                    f"encontrado {ot}.",
-                    node.lineno,
-                )
-            return ot
+        if ot is not None and ot not in _NUMERIC_TYPES:
+            self._error(
+                f"Operando de '{node.op}' unário deve ser numérico, "
+                f"encontrado {ot}.",
+                node.lineno,
+            )
+        return ot
 
-        if node.op == '.NOT.':
-            if ot is not None and ot != 'LOGICAL':
-                self._error(
-                    f"Operando de '.NOT.' deve ser LOGICAL, encontrado {ot}.",
-                    node.lineno,
-                )
-            return 'LOGICAL'
+    def _type_of_LogicalUnaryOp(self, node: LogicalUnaryOp) -> str | None:
+        ot = self._type_of(node.operand)
 
-        return None
+        if ot is not None and ot != 'LOGICAL':
+            self._error(
+                f"Operando de '{node.op}' deve ser LOGICAL, encontrado {ot}.",
+                node.lineno,
+            )
+        return 'LOGICAL'
 
     def _type_of_intrinsic(self, node: FuncCall) -> str | None:
         """

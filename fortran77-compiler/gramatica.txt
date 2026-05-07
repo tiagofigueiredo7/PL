@@ -88,22 +88,11 @@ return_stmt           -> RETURN
 
 stop_stmt             -> STOP
 
-expr                  -> expr OP_OR expr
-                       | expr OP_AND expr
-                       | OP_NOT expr
-                       | expr OP_EQ expr
-                       | expr OP_NE expr
-                       | expr OP_LT expr
-                       | expr OP_LE expr
-                       | expr OP_GT expr
-                       | expr OP_GE expr
-                       | expr '+' expr
-                       | expr '-' expr
-                       | expr '*' expr
-                       | expr '/' expr
-                       | expr POWER expr
-                       | '-' expr
-                       | '+' expr
+expr                  -> expr arithmetic_op expr
+                       | expr logical_op expr
+                       | expr relational_op expr
+                       | unary_arithmetic_op expr
+                       | unary_logical_op expr
                        | '(' expr ')'
                        | INT_LIT
                        | REAL_LIT
@@ -112,6 +101,12 @@ expr                  -> expr OP_OR expr
                        | FALSE
                        | variable
                        | func_call
+
+arithmetic_op         -> '+' | '-' | '*' | '/' | POWER
+logical_op            -> OP_AND | OP_OR
+relational_op         -> OP_EQ | OP_NE | OP_LT | OP_LE | OP_GT | OP_GE
+unary_arithmetic_op   -> '+' | '-'
+unary_logical_op      -> OP_NOT
 
 variable              -> IDEN
                        | IDEN '(' expr_list ')'

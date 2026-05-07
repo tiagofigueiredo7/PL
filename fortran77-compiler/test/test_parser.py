@@ -8,7 +8,13 @@ src_dir = os.path.abspath(os.path.join(parent_dir, 'src'))
 sys.path.insert(0, parent_dir)
 sys.path.insert(0, src_dir)
 
-from src.parser import Parser, Node, Program, MainProgram, FunctionDef, PrintStmt, Assign, Var, IntLit, BinOp, IfThen, DoLoop, Goto
+from src.parser import (
+    Parser, Node, 
+    Program, MainProgram, FunctionDef, 
+    PrintStmt, Assign, Var, IntLit, BoolLit,
+    ArithmeticBinOp, LogicalBinOp, RelationalBinOp, ArithmeticUnaryOp, LogicalUnaryOp, 
+    IfThen, DoLoop, Goto
+)
 
 
 """
@@ -143,17 +149,59 @@ def test_parse_simple_assignment():
     assert isinstance(assign_stmt.value, IntLit)
     assert assign_stmt.value.value == 1
 
-def test_parse_binary_operation():
+def test_parse_arithmetic_binary_operation():
     src = "      PROGRAM TEST\n      X = A + B\n      END\n"
     ast, errors = get_ast(src)
     
     main_prog = ast.units[0]
     assign_stmt = main_prog.body.statements[0]
     
-    assert isinstance(assign_stmt.value, BinOp)
+    assert isinstance(assign_stmt.value, ArithmeticBinOp)
     assert assign_stmt.value.op == '+'
     assert isinstance(assign_stmt.value.left, Var)
     assert assign_stmt.value.left.name == 'A'
+
+def test_parse_logical_binary_operation():
+    src = "      PROGRAM TEST\n      X = .TRUE. .AND. .FALSE.\n      END\n"
+    ast, errors = get_ast(src)
+    assert len(errors) == 0
+    assign_stmt = ast.units[0].body.statements[0]
+    assert isinstance(assign_stmt.value, LogicalBinOp)
+    assert assign_stmt.value.op == '.AND.'
+    assert isinstance(assign_stmt.value.left, BoolLit)
+    assert assign_stmt.value.left.value == True
+    assert isinstance(assign_stmt.value.right, BoolLit)
+    assert assign_stmt.value.right.value == False
+
+def test_parse_relational_binary_operation():
+    src = "      PROGRAM TEST\n      X = A .LT. B\n      END\n"
+    ast, errors = get_ast(src)
+    assert len(errors) == 0
+    assign_stmt = ast.units[0].body.statements[0]
+    assert isinstance(assign_stmt.value, RelationalBinOp)
+    assert assign_stmt.value.op == '.LT.'
+    assert isinstance(assign_stmt.value.left, Var)
+    assert assign_stmt.value.left.name == 'A'
+
+def test_parse_arithmetic_unary_operation():
+    src = "      PROGRAM TEST\n      X = -A\n      END\n"
+    ast, errors = get_ast(src)
+    assert len(errors) == 0
+    assign_stmt = ast.units[0].body.statements[0]
+    assert isinstance(assign_stmt.value, ArithmeticUnaryOp)
+    assert assign_stmt.value.op == '-'
+    assert isinstance(assign_stmt.value.operand, Var)
+    assert assign_stmt.value.operand.name == 'A'
+
+def test_parse_logical_unary_operation():
+    src = "      PROGRAM TEST\n      X = .NOT. .TRUE.\n      END\n"
+    ast, errors = get_ast(src)
+    assert len(errors) == 0
+    assign_stmt = ast.units[0].body.statements[0]
+    assert isinstance(assign_stmt.value, LogicalUnaryOp)
+    assert assign_stmt.value.op == '.NOT.'
+    assert isinstance(assign_stmt.value.operand, BoolLit)
+    assert assign_stmt.value.operand.value == True
 
 """
 Testar se erros de sintaxe são devidamente apanhados.
