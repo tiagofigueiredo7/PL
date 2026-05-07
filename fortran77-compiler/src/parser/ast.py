@@ -210,24 +210,34 @@ class StopStmt(Node):
 
 # --- Expressões ---------------------------------------------------------------
 @dataclass
-class BinOp(Node):
-    """
-    Operação binária genérica.
-    op é o operador como string: '+', '-', '*', '/', '**',
-    '.EQ.', '.NE.', '.LT.', '.LE.', '.GT.', '.GE.',
-    '.AND.', '.OR.'
-    """
+class ArithmeticBinOp(Node):
     left:  Node
     op:    str
     right: Node
 
 
 @dataclass
-class UnaryOp(Node):
-    """
-    Operação unária.
-    op: '-' (negação) | '+' | '.NOT.'
-    """
+class LogicalBinOp(Node):
+    left:  Node
+    op:    str
+    right: Node
+
+
+@dataclass
+class RelationalBinOp(Node):
+    left:  Node
+    op:    str
+    right: Node
+
+
+@dataclass
+class ArithmeticUnaryOp(Node):
+    op:      str
+    operand: Node
+
+
+@dataclass
+class LogicalUnaryOp(Node):
     op:      str
     operand: Node
 

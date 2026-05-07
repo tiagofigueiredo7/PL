@@ -49,16 +49,10 @@ class Parser:
         p[0] = p[1]
 
     # --- Unidades de programa --------------------------------------
-    def p_program_unit_main(self, p):
-        """program_unit : main_program"""
-        p[0] = p[1]
-
-    def p_program_unit_function(self, p):
-        """program_unit : function_subprogram"""
-        p[0] = p[1]
-
-    def p_program_unit_subroutine(self, p):
-        """program_unit : subroutine_subprogram"""
+    def p_program_unit(self, p):
+        '''program_unit : main_program
+                        | function_subprogram
+                        | subroutine_subprogram'''
         p[0] = p[1]
 
     # --- Programa principal ----------------------------------------
@@ -169,21 +163,12 @@ class Parser:
         )
 
     # type_spec: devolve string ou tuple
-    def p_type_spec_integer(self, p):
-        """type_spec : INTEGER"""
-        p[0] = 'INTEGER'
-
-    def p_type_spec_real(self, p):
-        """type_spec : REAL"""
-        p[0] = 'REAL'
-
-    def p_type_spec_logical(self, p):
-        """type_spec : LOGICAL"""
-        p[0] = 'LOGICAL'
-
-    def p_type_spec_character(self, p):
-        """type_spec : CHARACTER"""
-        p[0] = 'CHARACTER'
+    def p_type_spec_basic(self, p):
+        '''type_spec : INTEGER
+                     | REAL
+                     | LOGICAL
+                     | CHARACTER'''
+        p[0] = p[1]
 
     def p_type_spec_character_len(self, p):
         """type_spec : CHARACTER '*' INT_LIT"""
@@ -208,40 +193,16 @@ class Parser:
         p[0] = VarDecl(name=p[1], dimension=p[3], lineno=p.lineno(1))
 
     # --- Instruções executáveis ------------------------------------
-    def p_statement_assign(self, p):
-        """statement : assignment_stmt"""
-        p[0] = p[1]
-
-    def p_statement_if(self, p):
-        """statement : if_stmt"""
-        p[0] = p[1]
-
-    def p_statement_do(self, p):
-        """statement : do_stmt"""
-        p[0] = p[1]
-
-    def p_statement_goto(self, p):
-        """statement : goto_stmt"""
-        p[0] = p[1]
-
-    def p_statement_print(self, p):
-        """statement : print_stmt"""
-        p[0] = p[1]
-
-    def p_statement_read(self, p):
-        """statement : read_stmt"""
-        p[0] = p[1]
-
-    def p_statement_call(self, p):
-        """statement : call_stmt"""
-        p[0] = p[1]
-
-    def p_statement_return(self, p):
-        """statement : return_stmt"""
-        p[0] = p[1]
-
-    def p_statement_stop(self, p):
-        """statement : stop_stmt"""
+    def p_statement(self, p):
+        '''statement : assignment_stmt
+                     | if_stmt
+                     | do_stmt
+                     | goto_stmt
+                     | print_stmt
+                     | read_stmt
+                     | call_stmt
+                     | return_stmt
+                     | stop_stmt'''
         p[0] = p[1]
 
     # --- Atribuição ------------------------------------------------
@@ -348,73 +309,37 @@ class Parser:
         p[0] = StopStmt(lineno=p.lineno(1))
 
     # --- Expressões ------------------------------------------------
-    # Operadores lógicos
-    def p_expr_or(self, p):
-        """expr : expr OP_OR expr"""
-        p[0] = BinOp(left=p[1], op='.OR.', right=p[3], lineno=p.lineno(2))
 
-    def p_expr_and(self, p):
-        """expr : expr OP_AND expr"""
-        p[0] = BinOp(left=p[1], op='.AND.', right=p[3], lineno=p.lineno(2))
+    def p_expr_logical_binop(self, p):
+        '''expr : expr OP_AND expr
+                | expr OP_OR expr'''
+        p[0] = LogicalBinOp(left=p[1], op=p[2], right=p[3], lineno=p.lineno(2))
 
-    def p_expr_not(self, p):
-        """expr : OP_NOT expr"""
-        p[0] = UnaryOp(op='.NOT.', operand=p[2], lineno=p.lineno(1))
+    def p_expr_logical_unary(self, p):
+        '''expr : OP_NOT expr'''
+        p[0] = LogicalUnaryOp(op=p[1], operand=p[2], lineno=p.lineno(1))
 
-    # Operadores relacionais
-    def p_expr_eq(self, p):
-        """expr : expr OP_EQ expr"""
-        p[0] = BinOp(left=p[1], op='.EQ.', right=p[3], lineno=p.lineno(2))
+    def p_expr_relational_binop(self, p):
+        '''expr : expr OP_EQ expr
+                | expr OP_NE expr
+                | expr OP_LT expr
+                | expr OP_LE expr
+                | expr OP_GT expr
+                | expr OP_GE expr'''
+        p[0] = RelationalBinOp(left=p[1], op=p[2], right=p[3], lineno=p.lineno(2))
 
-    def p_expr_ne(self, p):
-        """expr : expr OP_NE expr"""
-        p[0] = BinOp(left=p[1], op='.NE.', right=p[3], lineno=p.lineno(2))
+    def p_expr_arithmetic_binop(self, p):
+        '''expr : expr '+' expr
+                | expr '-' expr
+                | expr '*' expr
+                | expr '/' expr
+                | expr POWER expr'''
+        p[0] = ArithmeticBinOp(left=p[1], op=p[2], right=p[3], lineno=p.lineno(2))
 
-    def p_expr_lt(self, p):
-        """expr : expr OP_LT expr"""
-        p[0] = BinOp(left=p[1], op='.LT.', right=p[3], lineno=p.lineno(2))
-
-    def p_expr_le(self, p):
-        """expr : expr OP_LE expr"""
-        p[0] = BinOp(left=p[1], op='.LE.', right=p[3], lineno=p.lineno(2))
-
-    def p_expr_gt(self, p):
-        """expr : expr OP_GT expr"""
-        p[0] = BinOp(left=p[1], op='.GT.', right=p[3], lineno=p.lineno(2))
-
-    def p_expr_ge(self, p):
-        """expr : expr OP_GE expr"""
-        p[0] = BinOp(left=p[1], op='.GE.', right=p[3], lineno=p.lineno(2))
-
-    # Operadores aritméticos
-    def p_expr_add(self, p):
-        """expr : expr '+' expr"""
-        p[0] = BinOp(left=p[1], op='+', right=p[3], lineno=p.lineno(2))
-
-    def p_expr_sub(self, p):
-        """expr : expr '-' expr"""
-        p[0] = BinOp(left=p[1], op='-', right=p[3], lineno=p.lineno(2))
-
-    def p_expr_mul(self, p):
-        """expr : expr '*' expr"""
-        p[0] = BinOp(left=p[1], op='*', right=p[3], lineno=p.lineno(2))
-
-    def p_expr_div(self, p):
-        """expr : expr '/' expr"""
-        p[0] = BinOp(left=p[1], op='/', right=p[3], lineno=p.lineno(2))
-
-    def p_expr_power(self, p):
-        """expr : expr POWER expr"""
-        p[0] = BinOp(left=p[1], op='**', right=p[3], lineno=p.lineno(2))
-
-    # Unários
-    def p_expr_uminus(self, p):
-        """expr : '-' expr %prec UMINUS"""
-        p[0] = UnaryOp(op='-', operand=p[2], lineno=p.lineno(1))
-
-    def p_expr_uplus(self, p):
-        """expr : '+' expr %prec UPLUS"""
-        p[0] = UnaryOp(op='+', operand=p[2], lineno=p.lineno(1))
+    def p_expr_arithmetic_unary(self, p):
+        '''expr : '-' expr %prec UMINUS
+                | '+' expr %prec UPLUS'''
+        p[0] = ArithmeticUnaryOp(op=p[1], operand=p[2], lineno=p.lineno(1))
 
     # Agrupamento
     def p_expr_paren(self, p):
@@ -434,22 +359,15 @@ class Parser:
         """expr : STRING_LIT"""
         p[0] = StringLit(value=p[1], lineno=p.lineno(1))
 
-    def p_expr_true(self, p):
-        """expr : TRUE"""
-        p[0] = BoolLit(value=True, lineno=p.lineno(1))
+    def p_expr_bool_lit(self, p):
+        '''expr : TRUE
+                | FALSE'''
+        p[0] = BoolLit(value=p[1], lineno=p.lineno(1))
 
-    def p_expr_false(self, p):
-        """expr : FALSE"""
-        p[0] = BoolLit(value=False, lineno=p.lineno(1))
-
-    # Variável / acesso a array (na posição de expressão)
-    def p_expr_variable(self, p):
-        """expr : variable"""
-        p[0] = p[1]
-
-    # Chamada de função (na posição de expressão)
-    def p_expr_func_call(self, p):
-        """expr : func_call"""
+    # Variável e chamada de função (na posição de expressão)
+    def p_expr_variable_or_func(self, p):
+        '''expr : variable
+                | func_call'''
         p[0] = p[1]
         
     # --- Variáveis -------------------------------------------------
@@ -590,15 +508,35 @@ class ASTPrinter(ASTVisitor):
     def visit_BoolLit(self, node):
         self._pr(f"BoolLit({node.value})")
 
-    def visit_BinOp(self, node):
-        self._pr(f"BinOp({node.op})")
+    def visit_ArithmeticBinOp(self, node):
+        self._pr(f"ArithmeticBinOp({node.op})")
         self._indent += 1
         self.visit(node.left)
         self.visit(node.right)
         self._indent -= 1
 
-    def visit_UnaryOp(self, node):
-        self._pr(f"UnaryOp({node.op})")
+    def visit_LogicalBinOp(self, node):
+        self._pr(f"LogicalBinOp({node.op})")
+        self._indent += 1
+        self.visit(node.left)
+        self.visit(node.right)
+        self._indent -= 1
+
+    def visit_RelationalBinOp(self, node):
+        self._pr(f"RelationalBinOp({node.op})")
+        self._indent += 1
+        self.visit(node.left)
+        self.visit(node.right)
+        self._indent -= 1
+
+    def visit_ArithmeticUnaryOp(self, node):
+        self._pr(f"ArithmeticUnaryOp({node.op})")
+        self._indent += 1
+        self.visit(node.operand)
+        self._indent -= 1
+
+    def visit_LogicalUnaryOp(self, node):
+        self._pr(f"LogicalUnaryOp({node.op})")
         self._indent += 1
         self.visit(node.operand)
         self._indent -= 1

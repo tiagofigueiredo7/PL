@@ -23,9 +23,9 @@ def main():
     
     # --- Modo Pré-processamento -------------------------------------
     if args.preprocess:
-        print("=" * 25)
+        print("=" * 30)
         print("=> Modo Pré-processamento...")
-        print("=" * 25)
+        print("=" * 30)
         print()
         try:
             with open(args.file, "r", encoding="utf-8") as f:
