@@ -1,6 +1,7 @@
 import ply.yacc as yacc
 
-from lexer import Lexer, TOKENS, LITERALS
+from lexer.lexer import Lexer
+from lexer.tokens import TOKENS, LITERALS
 from .ast import *
 from dataclasses import dataclass
 

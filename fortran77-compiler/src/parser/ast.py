@@ -211,6 +211,11 @@ class StopStmt(Node):
 # --- Expressões ---------------------------------------------------------------
 @dataclass
 class ArithmeticBinOp(Node):
+    """
+    Operação aritmética binária: <left> <op> <right>
+    Ex:  5 + 3
+         X * Y
+    """
     left:  Node
     op:    str
     right: Node
@@ -218,6 +223,11 @@ class ArithmeticBinOp(Node):
 
 @dataclass
 class LogicalBinOp(Node):
+    """
+    Operação lógica binária: <left> <op> <right>
+    Ex:  .TRUE. .AND. .FALSE.
+         X .OR. Y
+    """
     left:  Node
     op:    str
     right: Node
@@ -225,6 +235,11 @@ class LogicalBinOp(Node):
 
 @dataclass
 class RelationalBinOp(Node):
+    """
+    Operação relacional binária: <left> <op> <right>
+    Ex:  X .EQ. Y
+         I .NE. J
+    """
     left:  Node
     op:    str
     right: Node
@@ -232,12 +247,21 @@ class RelationalBinOp(Node):
 
 @dataclass
 class ArithmeticUnaryOp(Node):
+    """
+    Operação aritmética unária: <op> <operand>
+    Ex:  -X
+         +Y
+    """
     op:      str
     operand: Node
 
 
 @dataclass
 class LogicalUnaryOp(Node):
+    """
+    Operação lógica unária: <op> <operand>
+    Ex:  .NOT. X
+    """
     op:      str
     operand: Node
 

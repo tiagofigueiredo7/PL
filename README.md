@@ -48,7 +48,7 @@ options:
   -h, --help       show this help message and exit
   -pp, --preprocess  Executa apenas o pré-processamento
   -l, --lexer      Executa o lexer
-  -p, --parser     Executa o lexer e depois o parser
+  -p, --parser     Executa o lexer e o parser
   -s, --semantic   Executa o lexer, parser e a análise semântica
   -t, --translate  Executa a tradução completa
 ```
@@ -111,7 +111,7 @@ options:
   -h, --help       show this help message and exit
   -pp, --preprocess  Executes only the preprocessing
   -l, --lexer      Executes the lexer
-  -p, --parser     Executes the lexer and then the parser
+  -p, --parser     Executes the lexer and the parser
   -s, --semantic   Executes the lexer, parser and semantic analysis
   -t, --translate  Executes the full translation
 ```

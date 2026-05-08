@@ -1,7 +1,17 @@
 from dataclasses import dataclass
 
 from .symbolTable import SymbolTable, VarSymbol, SubprogramSymbol
-from parser import *
+from parser.parser import ASTVisitor
+from parser.ast import (
+    Node,
+    Program, MainProgram, FunctionDef, SubroutineDef, 
+    Body, TypeDecl, 
+    LabeledStmt, Assign, IfThen, LogicalIf, DoLoop, Goto, Continue, 
+    PrintStmt, ReadStmt, CallStmt, ReturnStmt, StopStmt,
+    Var, VarOrFuncCall, ArithmeticBinOp, LogicalBinOp, RelationalBinOp,
+    ArithmeticUnaryOp, LogicalUnaryOp, FuncCall,
+    IntLit, RealLit, StringLit, BoolLit
+)
 
 @dataclass
 class SemanticError(Exception):
@@ -30,7 +40,7 @@ _INTRINSICS: dict[str, tuple[int | None, str]] = {
 }
 
 
-class SemanticAnalyzer(ASTVisitor):
+class SemanticAnalyser(ASTVisitor):
     """
     Estado interno:
         _errors       - lista de SemanticError acumulados
@@ -148,7 +158,7 @@ class SemanticAnalyzer(ASTVisitor):
         if isinstance(unit, FunctionDef):
             return_type = unit.return_type if unit.return_type else 'UNKNOWN'
 
-        # vê
+        # procura declarações de tipo no body para refinar os tipos dos parâmetros e do retorno
         for decl in unit.body.declarations:
             if isinstance(decl, TypeDecl):
                 for vd in decl.variables:

@@ -1,8 +1,8 @@
-from .semantic import SemanticAnalyzer, SemanticError
+from .semantic import SemanticAnalyser, SemanticError
 from .symbolTable import SymbolTable, VarSymbol, SubprogramSymbol
 
 __all__ = [
-    'SemanticAnalyzer',
+    'SemanticAnalyser',
     'SemanticError',
     'SymbolTable',
     'VarSymbol',
