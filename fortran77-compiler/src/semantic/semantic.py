@@ -222,17 +222,18 @@ class SemanticAnalyser(ASTVisitor):
         self._do_vars  = set()
         self._symbol_table.push()
 
-        # variável de retorno
+        # parâmetros formais: índices negativos, não avançam o contador local
+        for i, pname in enumerate(node.params):
+            self._symbol_table.declare_param(
+                VarSymbol(name=pname, var_type='UNKNOWN'),
+                param_index=i,
+            )
+
+        # variável de retorno: primeiro índice local (0), acedida com PUSHL 0
         ret_type = node.return_type if node.return_type else 'UNKNOWN'
         self._symbol_table.declare_var(
             VarSymbol(name=node.name, var_type=ret_type)
         )
-
-        # parâmetros formais com tipo provisório
-        for pname in node.params:
-            self._symbol_table.declare_var(
-                VarSymbol(name=pname, var_type='UNKNOWN')
-            )
 
         self.visit(node.body)
 
@@ -261,9 +262,11 @@ class SemanticAnalyser(ASTVisitor):
         self._do_vars  = set()
         self._symbol_table.push()
 
-        for pname in node.params:
-            self._symbol_table.declare_var(
-                VarSymbol(name=pname, var_type='UNKNOWN')
+        # parâmetros formais: índices negativos, não avançam o contador local
+        for i, pname in enumerate(node.params):
+            self._symbol_table.declare_param(
+                VarSymbol(name=pname, var_type='UNKNOWN'),
+                param_index=i,
             )
 
         self.visit(node.body)
@@ -289,7 +292,7 @@ class SemanticAnalyser(ASTVisitor):
             existing = self._symbol_table.lookup_var(vd.name)
 
             if existing and existing.var_type == 'UNKNOWN':
-                # parâmetro: atualiza o tipo e a dimensão
+                # parâmetro formal: actualiza tipo e dimensão; índice mantém-se
                 existing.var_type  = node.type_name
                 existing.dimension = vd.dimension
             elif existing:
@@ -740,7 +743,6 @@ class SemanticAnalyser(ASTVisitor):
             return 'REAL' if 'REAL' in arg_types else 'INTEGER'
 
         return ret_type
-
 
 
     def _check_assign_compat(self, ltype: str | None, rtype: str | None, lineno: int) -> None:
