@@ -12,11 +12,7 @@ from .ir import (
 
 class IROptimizer:
     def optimize(self, program: IRProgram) -> IRProgram:
-        # Recolhe todos os alvos de PUSHA de TODAS as unidades antes de
-        # optimizar qualquer uma.  Necessário porque o label de entrada de
-        # uma função (e.g. CONVRT:) vive na unidade da função, mas o PUSHA
-        # que o referencia vive na unidade chamadora — referência cross-unit
-        # que a passagem _unused_labels não veria de outra forma.
+        # Identifica labels referenciados por PUSHA em outras unidades para protegê-los da eliminação de labels órfãos
         global_pusha: set[str] = {
             instr.label
             for unit in program.units
@@ -154,16 +150,7 @@ class IROptimizer:
     def _unused_labels(self, instrs: list[IRInstr],
                        protected: set[str]) -> list[IRInstr]:
         """
-        Remove labels que não são alvo de nenhum salto, PUSHA local, ou
-        referência cross-unit (conjunto `protected` recebido de `optimize`).
-
-        Contexto: quando um IF contém um GOTO no then-body, o dead code
-        eliminator remove o 'JUMP ENDIFlabel{n}' (código morto após o GOTO),
-        mas o label 'ENDIFlabel{n}:' fica sem referências → "Unused identifier"
-        na VM.  Esta passagem limpa esses labels órfãos.
-
-        O conjunto `protected` garante que labels de entrada de funções/
-        subrotinas (referenciados por PUSHA noutra unidade) não são removidos.
+        Remove labels que não são alvo de nenhum salto, PUSHA local, ou referência.
         """
         # Referências locais: JUMPs e PUSHAs dentro desta unidade
         local_refs: set[str] = set(protected)

@@ -384,7 +384,7 @@ class SemanticAnalyser(ASTVisitor):
         """
         Verifica o DO loop.
         O parser absorve o LABEL CONTINUE terminal, por isso o fecho do
-        _do_stack é feito directamente aqui, após visitar o body.
+        _do_stack é feito diretamente aqui, após visitar o body.
         """
         # verifica a variável de controlo
         var_sym = self._symbol_table.lookup_var(node.var)
@@ -489,7 +489,7 @@ class SemanticAnalyser(ASTVisitor):
                             )
 
     def visit_ReturnStmt(self, node: ReturnStmt) -> None:
-        """RETURN é sempre válido; nenhuma verificação adicional."""
+        """RETURN é sempre válido."""
         pass
 
     def visit_StopStmt(self, node: StopStmt) -> None:
@@ -536,35 +536,6 @@ class SemanticAnalyser(ASTVisitor):
         return sym.var_type
 
     def _type_of_var_or_func(self, node: VarOrFuncCall) -> str | None:
-        """
-        Trata um nó VarOrFuncCall, que o parser produz para qualquer
-        expressão da forma  IDEN(args)  — pode ser:
-
-            (a) Acesso a array  - IDEN está declarado como VarSymbol com
-                                is_array == True
-            (b) Chamada de função de utilizador - IDEN está declarado como
-                                SubprogramSymbol com kind == 'FUNCTION' (mesmo
-                                que exista um VarSymbol escalar local com o mesmo nome,
-                                que é o padrão no local onde a função é chamada)
-
-        Regras de resolução (por ordem):
-            1. Procura primeiro na symbol table como variável.
-                Se encontrar e for array (ou não for array local, mas tmb não for função global):
-                - verifica que o número de argumentos é 1 (arrays são
-                    unidimensionais neste compilador);
-                - verifica que o índice é INTEGER;
-                - devolve o tipo do array.
-                Se encontrar como escalar MAS não houver função correspondente:
-                - emite erro (escalar usado com índice).
-            2. Se não for variável array, procura como subprograma (ou se for Var escalar + função).
-                Se encontrar e for FUNCTION:
-                - verifica a aridade;
-                - devolve o tipo de retorno.
-                Se encontrar mas for SUBROUTINE:
-                - emite erro (subrotina usada como expressão).
-            3. Se não encontrar em nenhum dos dois:
-                - emite erro (identificador não declarado).
-        """
         var_sym  = self._symbol_table.lookup_var(node.name)
         func_sym = self._symbol_table.lookup_subprogram(node.name)
 

@@ -58,7 +58,7 @@ class IRBuilder(ASTVisitor):
         self._current_unit:  str | None         = None
         self._current_kind:   str | None         = None
         self._current_arity:  int               = 0
-        self._current_n_eff:  int               = 0   # n_effective para return
+        self._current_n_eff:  int               = 0
         self._needs_power:    bool               = False
 
     def build(self, ast: Program) -> tuple[IRProgram, bool]:
@@ -103,25 +103,12 @@ class IRBuilder(ASTVisitor):
             self._emit(IRStoreL(sym.index))
 
     def _push_array_elem(self, sym: VarSymbol, index_node: Node) -> None:
-        """
-        Emite código para ler ARRAY(I) da heap dinâmica.
-        Stack após: [elemento]
-
-        Sequência: push addr_heap | push I | PUSHI 1 | SUB | LOADN
-        O índice Fortran (base 1) é convertido para base 0 com SUB.
-        """
         self._push_var(sym)              # endereço da heap (gp/fp[idx])
         self.visit(index_node)           # índice Fortran (1-based)
         self._emit(IRPushI(1), IRSub())  # → 0-based
         self._emit(IRLoadN())
 
     def _begin_array_store(self, sym: VarSymbol, index_node: Node) -> None:
-        """
-        Emite addr e idx para um store de array. O valor deve ser emitido a seguir,
-        seguido de _end_array_store().
-
-        Sequência: push addr_heap | push I | PUSHI 1 | SUB
-        """
         self._push_var(sym)
         self.visit(index_node)
         self._emit(IRPushI(1), IRSub())  # 0-based
@@ -191,10 +178,6 @@ class IRBuilder(ASTVisitor):
     def _emit_array_allocs(self) -> None:
         """
         Emite ALLOC + STORE para cada array declarado no scope atual.
-        Deve ser chamado depois de PUSHN (que reservou 1 slot por variável).
-
-        Usa sym.dimension (e.g., 5 para NUMS(5)) para o tamanho da heap,
-        não sym.size (que é sempre 1 — o slot que guarda o endereço da heap).
         """
         scope = self._symbols._table[-1]
         for sym in scope.values():
@@ -206,18 +189,7 @@ class IRBuilder(ASTVisitor):
     def _emit_function_return(self) -> None:
         """
         Antes de RETURN, escreve o valor de retorno no slot reservado pelo
-        chamador e limpa a frame (locais + args).
-
-        O chamador pré-aloca um slot de retorno com PUSHI 0, abaixo dos args.
-        O slot está em fp[-(arity+1)], acessível por STOREL com índice negativo
-        (confirmado como funcional pelo teste passo-a-passo na EWVM).
-
-        Sequência emitida:
-            PUSHL ret_idx                — empilha valor de retorno
-            STOREL -(arity+1)            — escreve no slot de retorno
-            POP n_locals                 — remove todos os locais (fp[0..n-1])
-            POP arity                    — remove todos os args (abaixo de fp)
-        Após RETURN (sp não restaurado): o slot de retorno fica no topo.
+        chamador e limpa a frame.
         """
         ret_sym = self._symbols.lookup_var(self._current_unit)
         if ret_sym is None:
@@ -252,7 +224,6 @@ class IRBuilder(ASTVisitor):
         if n > 0:
             self._emit(IRPushN(n))
 
-        # Inicializa arrays na heap (substitui cálculo PUSHGP/PADD)
         self._emit_array_allocs()
 
         for stmt in node.body.statements:
