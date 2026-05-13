@@ -1,6 +1,7 @@
       PROGRAM CLASSIF
       INTEGER N
       LOGICAL ISPOS, ISNEG, ISEVEN
+      PRINT *, 'Escreva um valor inteiro: '
       READ *, N
       ISPOS = N .GT. 0
       ISNEG = N .LT. 0
