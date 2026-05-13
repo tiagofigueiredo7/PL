@@ -33,6 +33,8 @@ class Parser:
         ('left',     '*', '/'),
         ('right',    'UMINUS', 'UPLUS'),
         ('right',    'POWER'),
+        ('right',    'NEWLINE'),
+        ('right',    'DO_TERM'),
     )
 
     def __init__(self) -> None:
@@ -153,6 +155,10 @@ class Parser:
         """stmt_line : LABEL statement NEWLINE"""
         p[0] = LabeledStmt(label=p[1], stmt=p[2], lineno=p.lineno(1))
 
+    def p_stmt_line_labeled_continue(self, p):
+        """stmt_line : LABEL CONTINUE NEWLINE"""
+        p[0] = LabeledStmt(label=p[1], stmt=Continue(lineno=p.lineno(2)), lineno=p.lineno(1))
+
     # --- Declarações de tipo ---------------------------------------
     def p_declaration(self, p):
         """declaration : type_spec var_decl_list"""
@@ -203,8 +209,7 @@ class Parser:
                      | read_stmt
                      | call_stmt
                      | return_stmt
-                     | stop_stmt
-                     | continue_stmt'''
+                     | stop_stmt'''
         p[0] = p[1]
 
     # --- Atribuição ------------------------------------------------
@@ -248,7 +253,7 @@ class Parser:
 
     # --- DO --------------------------------------------------------
     def p_do_loop(self, p):
-        """do_stmt : DO INT_LIT IDEN '=' expr ',' expr NEWLINE stmt_section LABEL CONTINUE"""
+        """do_stmt : DO INT_LIT IDEN '=' expr ',' expr NEWLINE stmt_section LABEL CONTINUE %prec DO_TERM"""
         p[0] = DoLoop(
             label=p[2], var=p[3],
             start=p[5], stop=p[7], step=None,
@@ -257,7 +262,7 @@ class Parser:
         )
 
     def p_do_loop_step(self, p):
-        """do_stmt : DO INT_LIT IDEN '=' expr ',' expr ',' expr NEWLINE stmt_section LABEL CONTINUE"""
+        """do_stmt : DO INT_LIT IDEN '=' expr ',' expr ',' expr NEWLINE stmt_section LABEL CONTINUE %prec DO_TERM"""
         p[0] = DoLoop(
             label=p[2], var=p[3],
             start=p[5], stop=p[7], step=p[9],
@@ -269,11 +274,6 @@ class Parser:
     def p_goto(self, p):
         """goto_stmt : GOTO INT_LIT"""
         p[0] = Goto(label=p[2], lineno=p.lineno(1))
-
-    # --- CONTINUE --------------------------------------------------
-    def p_continue_stmt(self, p):
-        """continue_stmt : CONTINUE"""
-        p[0] = Continue(lineno=p.lineno(1))
 
     # --- PRINT -----------------------------------------------------
     def p_print_stmt(self, p):

@@ -20,9 +20,13 @@ class VarSymbol:
     @property
     def size(self) -> int:
         """
-        Espaço ocupado na VM.
+        Slots ocupados na stack da VM.
+
+        Com alocação dinâmica (ALLOC), um array ocupa apenas 1 slot na stack
+        global/local — o slot guarda o endereço da heap devolvido por ALLOC.
+        Os dados do array vivem na heap, não na stack.
         """
-        return self.dimension if self.is_array else 1
+        return 1  # escalares: valor; arrays: endereço da heap (sempre 1 slot)
 
 
 @dataclass
