@@ -15,11 +15,10 @@ Projeto de grupo desenvolvido no âmbito da UC de Processamento de Linguagens. O
 - [Relatório](relatorio.pdf)
 
 > [!WARNING]
-> **Dependências:** Para correr o projeto é necessário ter instaladas as bibliotecas `ply` e `pytest`. Para isso, basta correr o seguinte comando:
- 
-```bash
-pip install ply pytest
-```
+> **Dependências:** Para correr o projeto é necessário ter instaladas as bibliotecas `ply` e `pytest`. Para isso, basta correr o seguinte comando: 
+> ```bash
+> pip install ply pytest
+> ```
 
 ## Setup
 Depois de fazer clone do repositório, é necessário criar um ambiente virtual de Python e instalar as dependências.
